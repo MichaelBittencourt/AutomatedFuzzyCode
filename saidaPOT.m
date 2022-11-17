@@ -1,0 +1,17 @@
+mini = min(POT);
+maxi = max(POT);
+p1=(maxi-mini)/12;
+fis = addvar(fis,'output','POT',[mini maxi]);
+fis = addmf(fis,'output',1,'S6','trimf',[mini mini (mini+p1)]);
+fis = addmf(fis,'output',1,'S5','trimf',[mini (mini+p1) (mini+2*p1)]);
+fis = addmf(fis,'output',1,'S4','trimf',[(mini+p1) (mini+2*p1) (mini+3*p1) ]);
+fis = addmf(fis,'output',1,'S3','trimf',[(mini+2*p1) (mini+3*p1) (mini+4*p1)]);
+fis = addmf(fis,'output',1,'S2','trimf',[(mini+3*p1) (mini+4*p1) (mini+5*p1)]);
+fis = addmf(fis,'output',1,'S1','trimf',[(mini+4*p1) (mini+5*p1) (mini+6*p1)]);
+fis = addmf(fis,'output',1,'CE','trimf',[(mini+5*p1) (mini+6*p1) (mini+7*p1)]);
+fis = addmf(fis,'output',1,'B1','trimf',[(mini+6*p1) (mini+7*p1) (mini+8*p1)]);
+fis = addmf(fis,'output',1,'B2','trimf',[(mini+7*p1) (mini+8*p1) (mini+9*p1)]);
+fis = addmf(fis,'output',1,'B3','trimf',[(mini+8*p1) (mini+9*p1) (mini+10*p1)]);
+fis = addmf(fis,'output',1,'B4','trimf',[(mini+9*p1) (mini+10*p1) (mini+11*p1)]);
+fis = addmf(fis,'output',1,'B5','trimf',[(mini+10*p1) (mini+11*p1) (mini+12*p1)]);
+fis = addmf(fis,'output',1,'B6','trimf',[(mini+11*p1) maxi maxi]);
