@@ -1,0 +1,28 @@
+function result = removeRedundance(rules)
+    result = rules;
+end
+
+function result = checkIfRuleIsEqual(rule1, rule2)
+    len = size(rule1.Antecedent);
+    result = true;
+    if len == size(rule2.Antecedent)
+        for i=1:len
+            if rule1.Antecedent[i] ~= rule2.Antecedent[i]
+                result = false;
+                return
+            end
+        end
+    end
+    if rule1.Consequent ~= rule2.Consequent 
+        result = false;
+        return
+    end
+    if rule1.Weight ~= rule2.Weight 
+        result = false;
+        return
+    end
+    if rule1.Connection ~= rule2.Conection 
+        result = false;
+        return
+    end
+end

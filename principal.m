@@ -13,11 +13,14 @@ warning off
 %FORMATO DAS COLUNAS NO txt: 
 % [DIA   MES   ANO   HORA   MINUTO   POTENCIA]
 %format long;
-dadosEntrada = (xlsread('ent_itap.xls'))';
-dadosSaida = (xlsread('sai_itap.xls'))';
+%dadosEntrada = (xlsread('ent_itap.xls'))';
+%dadosSaida = (xlsread('sai_itap.xls'))';
+dados = xlsread('potenciamax.xlsx');
 
+dadosEntrada = [dados(1:end-3,1), dados(2:end-2,1), dados(3:end-1,1), dados(4:end,2)];
+dadosSaida = dados(4:end,1);
 %DADOS PARA TREINAMENTO- GERACAO DE REGRAS
-indice = 200; %Para separar o conjunto de treino e teste
+indice = 230; %Para separar o conjunto de treino e teste
 ENTRADA = dadosEntrada(1:indice,:);
 SAIDA = dadosSaida(1:indice,:);
 
@@ -52,7 +55,7 @@ rule = [ConjuntosPK1 ConjuntosPK2 ConjuntosPK3 ConjuntosSEM ...
     ConjuntosPOT (MembPK1.*MembPK2.*MembPK3.*MembSEM).*MembPOT ones(length(MembPK2),1)];
 
 %SALVA ARQUIVO TXT COM AS REGRAS
-dlmwrite('regras.txt',rule,'\t');
+%dlmwrite('regras.txt',rule,'\t');
 
 %FUNCAO QUE ELIMINA REDUNDANCIA DAS REGRAS(REGRAS 'REPETIDAS')
 %[rulemin] = redundancia(rule);
@@ -92,13 +95,74 @@ subplot(5,1,4),plotmf(fis,'input',4),ylabel('\mu_{SEM}')
 subplot(5,1,5),plotmf(fis,'output',1),ylabel('\mu_{SAIDA}')
 
 %Adicionando regras ao FIS
-regras = load('regras.txt');
-regrasmin = load('regrasmin.txt');
+%regras = load('regras.txt');
+%regrasmin = load('regrasmin.txt');
 %regrasj = xlsread('regras_ita_max_j.xls');
 
-regrasj = readmatrix('regras_ita_max_j.xls');
+%regrasj = readmatrix('regras_ita_max_j.xls');
 %fis = addRule(fis,regrasj);
-fis = addRule(fis,regrasj);
+fis = addRule(fis,rule);
+
+
+
+%% ******** PARTE 3 ********
+%Avaliando o FIS
+%Entradas [VAR1, VAR2, VAR3...]
+
+%Autoteste
+POTfis = evalfis([PK1 PK2 PK3 SEM], fis);  
+%figure
+%hold on;
+%plot (POT);
+%plot (POTfis);
+%legend('Reais','Target');
+%legend('Target Potência Treino','Previsão Potência Fuzzy');
+%ylabel('Potência');
+%title('Autoteste')
+%grid
+
+
+%Com dados de teste 
+TESTfis = evalfis([PK1T PK2T PK3T SEMT], fis);      %teste com dado reservado
+%figure
+%plot(POTT)
+%hold on;
+%plot(TESTfis)
+%title('Teste')
+%legend('Target Potência Teste','Previsão Potência Fuzzy');
+%grid
+
+
+%% ******** PARTE 4 ********
+%Metricas de Avaliação 
+disp('ANTES DA REDUNÇÃO')
+MAPE = errperf(POTfis,POT,'mape');
+fprintf('"TREINO" - MAPE (MEAN ABSOLUTE PERCENTAGE ERROR): %0.3f%%\n', mean(MAPE));
+
+MAPE = errperf(TESTfis,POTT,'mape');
+fprintf('TESTE - MAPE (MEAN ABSOLUTE PERCENTAGE ERROR): %0.3f%%\n\n', mean(MAPE));
+
+%writeFIS(fis,'Sistema de Inferência Fuzzy - AntesRedução.fis')
+
+
+%eliminaRedundancia3;
+regras =[rule(1,:);];
+
+for i=1:length(rule)
+    flag = 0;
+    
+    for j=1:length(regras(:,1)) 
+        if sum(regras(j,1:5) == rule(i,1:5))==5
+            flag=1;
+        end
+     end
+    if flag == 0
+        regras = [regras ; rule(i,:)];
+    end
+end
+
+
+fis = addRule(fis,regras);
 
 
 
@@ -129,7 +193,7 @@ title('Teste')
 legend('Target Potência Teste','Previsão Potência Fuzzy');
 grid
 
-
+disp('APÓS A REDUÇÃO')
 %% ******** PARTE 4 ********
 %Metricas de Avaliação 
 MAPE = errperf(POTfis,POT,'mape');
@@ -138,10 +202,10 @@ fprintf('"TREINO" - MAPE (MEAN ABSOLUTE PERCENTAGE ERROR): %0.3f%%\n', mean(MAPE
 MAPE = errperf(TESTfis,POTT,'mape');
 fprintf('TESTE - MAPE (MEAN ABSOLUTE PERCENTAGE ERROR): %0.3f%%\n', mean(MAPE));
 
-writeFIS(fis,'Sistema de Inferência Fuzzy - AntesRedução.fis')
+fprintf('Percentual de Redução: %0.3f%%\n', 100*(1-length(regras)/length(rule)));
+fprintf('Antes da Redução: %i\n', length(rule));
+fprintf('Após a Redução: %i\n', length(regras));
 
-
-eliminaRedundancia2;
 
 
 
